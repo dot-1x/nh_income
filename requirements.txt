@@ -1,0 +1,3 @@
+httpx
+py-cord
+bs4
