@@ -132,9 +132,9 @@ async def login():
 async def on_ready():
     try:
         results = await login()
-    except Exception as e:  # catch anything
+    except Exception:  # catch anything
         bot.loop.stop()
-        return
+        raise # re raise the error after stopping bot
 
     embed = Embed(
         colour=Colour.nitro_pink(),
@@ -152,9 +152,9 @@ async def on_ready():
     else:
         try:
             await user.send(embed=embed)
-        except Forbidden:
+        except Exception:
             bot.loop.stop()
-            return
+            raise
     bot.loop.stop()
 
 
