@@ -42,7 +42,7 @@ class ClaimStatus(Enum):
 
 
 class DataTup(NamedTuple):
-    status: str
+    status: ClaimStatus
     day: int
     item: int
     name: str
@@ -68,7 +68,7 @@ async def login():
     if USER is None or PASSWORD is None:
         raise ValueError("Username and Password must not NONE!")
 
-    async with httpx.AsyncClient() as ses:
+    async with httpx.AsyncClient(timeout=httpx.Timeout(timeout=5*60)) as ses:
         # get the cookie first
         await ses.get("https://kageherostudio.com/event/?event=daily")
 
@@ -81,15 +81,12 @@ async def login():
         page = BeautifulSoup(resp.content, "html.parser")
 
         results: List[DataTup] = [
-            DataTup(MSGSMAP[ClaimStatus.FAILED], -1, -1, '')
+            DataTup(ClaimStatus.FAILED, -1, -1, "")
         ] * DAYS  # pre allocation memory
 
         for day, element in enumerate(page.find_all("div", "grayscale"), start=1):
             results[day - 1] = DataTup(
-                MSGSMAP[ClaimStatus.CLAIMED],
-                day,
-                int(element["data-id"]),
-                element['data-name']
+                ClaimStatus.CLAIMED, day, int(element["data-id"]), element["data-name"]
             )
 
         # do the reward claiming
@@ -102,14 +99,15 @@ async def login():
         ):
             if num in results[day - 1]:
                 continue
+            item = page.find("div", {"data-id": num})
             result = await perform_claim(
                 ses, data={"itemId": num, "periodId": PERIOD, "selserver": int(SERVER)}
             )
             results[day - 1] = DataTup(
-                MSGSMAP[ClaimStatus.SUCCESS if result else ClaimStatus.FAILED],
+                ClaimStatus.SUCCESS if result else ClaimStatus.FAILED,
                 day,
                 num,
-                results[day - 1].name
+                item["data-name"],
             )
             if result:  # ignoring rest as it will trigger fail to save time
                 break
@@ -119,8 +117,10 @@ async def login():
     if not TOKEN:  # check without sending to discord bot
         print(
             *[
-                f"Item {item}/Day {day}: {f'Claimed ({name})' if item else f'Failed ({name})'}"
-                for _, day, item, name in results
+                f"Item {item}/Day {day}: "
+                + (f'Claimed ({name})' if status in [ClaimStatus.SUCCESS, ClaimStatus.CLAIMED]
+                else f'Failed ({name})')
+                for status, day, item, name in results
                 if item
             ],
             sep="\n",
@@ -132,7 +132,7 @@ async def login():
 async def on_ready():
     try:
         results = await login()
-    except Exception as e: # catch anything
+    except Exception as e:  # catch anything
         bot.loop.stop()
         return
 
@@ -141,7 +141,8 @@ async def on_ready():
         title="Claim daily report!",
         description=f"**{DATE.strftime('%d/%m/%Y')}**\n"
         + "\n".join(
-            f"Item {item}/Day {day} ({name}): " + res for res, day, item, name in results if item
+            f"Item {item}/Day {day} ({name}): " + MSGSMAP[res]
+            for res, day, item, name in results
         ),
         timestamp=datetime.now(),
     )
