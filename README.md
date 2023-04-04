@@ -1,31 +1,49 @@
-# How to use
+# NH AUTO INCOME
 
-`()` = means required  
-`[]` = means optional  
+## LISENSI
 
-1. create a github account  
-2. create a repository and make it **private**  
-3. **DOUBLE CHECK IF ITS PRIVATE, ITS IMPORTANT!!**  
-4. set up secret env:  
-    1. Click settings  
-    2. on Security sections click secret -> actions  
-    3. add new secret by clicking `New repository secret`, then add the following env:  
+**MIT**
+
+## PENGGUNAAN
+
+**PENTING**
+Buatlah 2 secrets terlebih dahulu  
+caranya:
+
+1. pergi ke menu repository settings
+2. pada bagian `security` klik `secrets and variable`
+3. lalu klik `actions`
+4. tambahkan secrets dengan klik `new repository secrets` dengan **masing masing** data sebagai berikut
+    - DISCORDTOKEN = di isi dengan token discord bot yang telah dibuat
+    - TELETOKEN = di isi dengan token telegram bot yang telah dibuat
+
+**ADA 2 CARA MENGGUNAKAN SCRIPT INI**
+
+## PENGGUNAAN 1
+
+1. silahkan fork repository ini
+2. jadikan private repository (**PASTIKAN PRIVATE**)
+3. edit file `data.json` sesuai berikut
+
     ```
-        STARTNUMBER=(THE START DATA FOR CURRENT DAILY PERIOD)  inspect element income web, find `data-id` property of first item
-        SERVER=(THE SERVER YOU WANT TO SEND)  
-        PASSWORD=(YOUR KAGEHERO PASSWORD)  
-        USERNAME=(YOUR KAGEHERO EMAIL)  
-        DISCORDUSER=(YOUR DISCORD USERID)
-        DISCORDTOKEN=[YOUR DISCORD BOT TOKEN FOR NOTIFICATION]
+    {
+        "email":"isi dengan email mu",
+        "password":"isi dengan password (boleh kosong)",
+        "server":"isi dengan server tujuan",
+        "discord_id":isi dengan discord userid notifikasi (isi dengan angka 0 jika tidak mau),
+        "tele_id":isi dengan telegram userid notifikasi (isi dengan angka 0 jika tidak mau)
+    }
     ```
-5. upload all files to github
-6. set up workflow folder:
-    1. create new file with the following path and name:  
-        `.github/workflows/anything.yml`
-        you don't need to write anything  
-    2. upload all `.yml` files to `.github/workflows/`  by simply clicking `add file` on  
-        upper right corner, make sure to check the path  
-7. check the running actions by clicking actions tab,  
-    look for the orange dot and click  
-    if it runs more than 3 minutes, then it is failed else success  
-8. to retrigger the workflow, simply add new files or edit, and write nothing then commit  
+
+    **NOTE: Untuk lebih lanjut, lihat `contoh.json`**
+
+4. commit change
+5. masuk ke tab actions lalu periksa running action
+6. periksa warna action sebagai berikut
+    1. merah - gagal
+    2. kuning - jika running > 3 menit gagal
+    3. hijau - berhasil
+
+## PENGGUNAAN 2
+
+mendatang!
