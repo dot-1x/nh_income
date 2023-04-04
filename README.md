@@ -21,7 +21,7 @@ caranya:
 
 ## PENGGUNAAN 1
 
-1. silahkan fork repository ini
+1. silahkan clone repository ini
 2. jadikan private repository (**PASTIKAN PRIVATE**)
 3. edit file `data.json` sesuai berikut
 
