@@ -17,12 +17,23 @@ caranya:
     - DISCORDTOKEN = di isi dengan token discord bot yang telah dibuat
     - TELETOKEN = di isi dengan token telegram bot yang telah dibuat
 
+**CARA CLONE REPO DENGAN UPLOAD FILES**
+
+1. unduh repo ini dengan tekan tombol hijau `<> Code` lalu klik unduh zip
+2. buat repository baru kamu dengan nama bebas
+3. buat file baru dengan cara `add file > new file`
+4. atur file path baru ke `.github/workflows/any.yml` lalu commit
+5. lalu upload file yang telah diunduh tadi dengan `add file > upload file` **kecuali** folder **.github**
+6. untuk folder .github, pertama arahkan github ke `.github/workflows/`
+7. lalu upload semua file yang ada pada folder `.github/workflows/` ke `.github/workflows/`
+8. commit
+
 **ADA 2 CARA MENGGUNAKAN SCRIPT INI**
 
 ## PENGGUNAAN 1
 
 1. silahkan clone repository ini
-2. jadikan private repository (**PASTIKAN PRIVATE**)
+2. buat repository baru jadikan private repository (**PASTIKAN PRIVATE**)
 3. edit file `data.json` sesuai berikut
 
     ```
