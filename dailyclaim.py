@@ -1,4 +1,5 @@
 from __future__ import annotations
+import asyncio
 
 import json
 import os
@@ -12,6 +13,7 @@ import httpx
 from bs4 import BeautifulSoup
 
 from notif_discord import DiscordNotifier
+from notif_tele import TeleNotifier
 
 try:
     from dotenv import load_dotenv
@@ -204,8 +206,10 @@ def main():
         print(status.print_status())
         print("=" * 20)
 
-    bot = DiscordNotifier(statuses)
-    bot.run(DCTOKEN)
+    tele_bot = TeleNotifier(TELETOKEN or "", statuses)
+    tele_bot.run()
+    dc_bot = DiscordNotifier(statuses)
+    asyncio.new_event_loop().run_until_complete(dc_bot.start(DCTOKEN or ""))
 
 
 if __name__ == "__main__":

@@ -7,7 +7,9 @@
 ## PENGGUNAAN
 
 **PENTING**
-Buatlah 2 secrets terlebih dahulu  
+
+## MEMBUAT SECRETS (PENTING)
+
 caranya:
 
 1. pergi ke menu repository settings
@@ -17,14 +19,15 @@ caranya:
     - DISCORDTOKEN = di isi dengan token discord bot yang telah dibuat
     - TELETOKEN = di isi dengan token telegram bot yang telah dibuat
 
-**CARA CLONE REPO DENGAN UPLOAD FILES**
+## CLONE REPOSITORY VIA UPLOAD
 
 1. unduh repo ini dengan tekan tombol hijau `<> Code` lalu klik unduh zip
 2. buat repository baru kamu dengan nama bebas
+   **BUAT SECRETS TERLEBIH DAHULU SEBELUM LANJUT**
 3. buat file baru dengan cara `add file > new file`
-4. atur file path baru ke `.github/workflows/any.yml` lalu commit
+4. atur file path baru ke `.github/workflows/any` lalu commit
 5. lalu upload file yang telah diunduh tadi dengan `add file > upload file` **kecuali** folder **.github**
-6. untuk folder .github, pertama arahkan github ke `.github/workflows/`
+6. untuk folder .github, pertama arahkan github ke `.github/workflows/` (pastikan hidden folder terlihat)
 7. lalu upload semua file yang ada pada folder `.github/workflows/` ke `.github/workflows/`
 8. commit
 

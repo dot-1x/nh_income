@@ -1,4 +1,5 @@
 from __future__ import annotations
+import asyncio
 import traceback
 from typing import TYPE_CHECKING, Any, List
 
@@ -9,12 +10,12 @@ if TYPE_CHECKING:
 
 
 class DiscordNotifier(Bot):
-    def __init__(self, statuses: List[UserStatus]):
+    def __init__(self, user_status: List[UserStatus]):
         super().__init__("Income notifier")
-        self.statuses = statuses
+        self.user_status = user_status
 
     async def on_ready(self):
-        for status in self.statuses:
+        for status in self.user_status:
             user = await self.get_or_fetch_user(status.discord)
             if not user:
                 print(f"userid {status.discord} not found!")
@@ -28,9 +29,11 @@ class DiscordNotifier(Bot):
                 await user.send(embed=embed)
             except Forbidden:
                 print(f"Failed to send message to {status.discord}")
-        self.loop.stop()
+        await self.close()
+        asyncio.get_running_loop().close()
 
-    async def on_error(self, event_method: str, *args: Any, **kwargs: Any) -> None:
+    async def on_error(self, *args: Any, **kwargs: Any) -> None:
         traceback.print_exc()
-        self.loop.stop()
+        await self.close()
+        asyncio.get_running_loop().close()
         raise RuntimeError
