@@ -206,10 +206,12 @@ def main():
         print(status.print_status())
         print("=" * 20)
 
-    tele_bot = TeleNotifier(TELETOKEN or "", statuses)
-    tele_bot.run()
-    dc_bot = DiscordNotifier(statuses)
-    asyncio.new_event_loop().run_until_complete(dc_bot.start(DCTOKEN or ""))
+    if TELETOKEN:
+        tele_bot = TeleNotifier(TELETOKEN, statuses)
+        tele_bot.run()
+    if DCTOKEN:
+        dc_bot = DiscordNotifier(statuses)
+        asyncio.new_event_loop().run_until_complete(dc_bot.start(DCTOKEN))
 
 
 if __name__ == "__main__":
