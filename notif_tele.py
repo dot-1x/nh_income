@@ -3,15 +3,12 @@ import asyncio
 import traceback
 
 from typing import TYPE_CHECKING, List, Optional
-from dotenv import load_dotenv
 from telegram import Bot
 from telegram.error import BadRequest
 from telegram.ext import ApplicationBuilder, CallbackContext
 
 if TYPE_CHECKING:
     from dailyclaim import UserStatus
-
-load_dotenv()
 
 
 class TeleBot(Bot):
