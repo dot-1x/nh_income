@@ -31,7 +31,7 @@ Jika kalian ingin notifikasi dari discord, maka buatlah discord bot dahulu, sama
 9. lalu upload semua file yang ada pada folder `.github/workflows/` ke `.github/workflows/`
 10. commit
 
-## SET UP ACCOUNT
+## 3. SET UP ACCOUNT
 
 1. edit file `data.json` sesuai berikut
 

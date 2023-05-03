@@ -5,5 +5,12 @@
         "server":"14",
         "discord_id":732842920889286687,
         "tele_id":0
+    },
+    {
+        "email":"contoh_akun_3@gmail.com",
+        "password":"contohdenganpassword",
+        "server":"16",
+        "discord_id":9999988881111,
+        "tele_id":224567
     }
 ]

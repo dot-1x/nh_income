@@ -6,7 +6,7 @@ import os
 from io import StringIO
 from enum import Enum, auto
 from datetime import datetime, timedelta
-from typing import List, NamedTuple, Optional, TypedDict
+from typing import Dict, List, NamedTuple, Optional, TypedDict
 from dataclasses import dataclass
 import discord
 
@@ -34,6 +34,7 @@ PERIOD = DATE.month
 DCTOKEN = os.getenv("DISCORDTOKEN")
 TELETOKEN = os.getenv("TELETOKEN")
 TIMEOUT = httpx.Timeout(60 * 5)
+FAIL_STATE: Dict[str, Exception] = {}
 
 
 class ClaimStatus(Enum):
@@ -181,7 +182,33 @@ class DailyClaim:
             server: {self.server})"
 
 
-def main():
+async def run_discord(statuses):
+    dc_bot = DiscordNotifier(statuses)
+    try:
+        if DCTOKEN:
+            await dc_bot.start(DCTOKEN)
+        else:
+            print("No discord token were provide")
+    except discord.LoginFailure as exc:
+        await dc_bot.close()
+        FAIL_STATE.update({"discord": exc})
+
+
+async def run_tele(statuses):
+    try:
+        if TELETOKEN:
+            tele_bot = TeleNotifier(TELETOKEN, statuses)
+            async with tele_bot.app:
+                await tele_bot.app.start()
+                await tele_bot.send_message()
+                await tele_bot.app.stop()
+        else:
+            print("No tele token were provided")
+    except telegram.error.InvalidToken as exc:
+        FAIL_STATE.update({"telegram": exc})
+
+
+async def main():
     with open("data.json", "r", encoding="utf-8") as file:
         data: List[UserData] = json.load(file)
 
@@ -212,21 +239,12 @@ def main():
         )
         print(status.print_status())
         print("=" * 20)
-
-    try:
-        if TELETOKEN:
-            tele_bot = TeleNotifier(TELETOKEN, statuses)
-            tele_bot.run()
-        else:
-            print("No tele token were provided")
-        if DCTOKEN:
-            dc_bot = DiscordNotifier(statuses)
-            asyncio.new_event_loop().run_until_complete(dc_bot.start(DCTOKEN))
-        else:
-            print("No discord token were provided")
-    except (discord.LoginFailure, telegram.error.InvalidToken) as exc:
-        raise RuntimeError("Provided token was invalid!") from exc
+    await run_discord(statuses)
+    await run_tele(statuses)
+    if FAIL_STATE:
+        key, exc = FAIL_STATE.popitem()
+        raise RuntimeError(f"An improper {key} token was invalid!") from exc
 
 
 if __name__ == "__main__":
-    main()
+    asyncio.run(main())

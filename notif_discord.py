@@ -1,5 +1,4 @@
 from __future__ import annotations
-import asyncio
 import traceback
 from typing import TYPE_CHECKING, Any, List
 
@@ -31,10 +30,8 @@ class DiscordNotifier(Bot):
             except Forbidden:
                 print(f"Failed to send message to {status.discord}")
         await self.close()
-        asyncio.get_running_loop().close()
 
     async def on_error(self, *_: Any, **__: Any) -> None:
         traceback.print_exc()
         await self.close()
-        asyncio.get_running_loop().close()
         raise RuntimeError
