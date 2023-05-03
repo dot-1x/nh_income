@@ -8,9 +8,11 @@ from enum import Enum, auto
 from datetime import datetime, timedelta
 from typing import List, NamedTuple, Optional, TypedDict
 from dataclasses import dataclass
+import discord
 
 import httpx
 from bs4 import BeautifulSoup
+import telegram
 
 from notif_discord import DiscordNotifier
 from notif_tele import TeleNotifier
@@ -74,9 +76,11 @@ class UserStatus(NamedTuple):
                 f"Income report for: **{self.email}**\n",
                 f"**{DATE.date()}**\n",
                 f"Last Claim: {self.last_claim if self.last_claim > 0 else 'No last claim!'}\n",
-                "\n".join(s.to_string() for s in self.statuses),
+                # "\n".join(s.to_string() for s in self.statuses),
             )
         )
+        for data in self.statuses:
+            info.write(f"\n{data.to_string()}")
         return info.getvalue()
 
 
@@ -184,6 +188,9 @@ def main():
     statuses: List[UserStatus] = []
 
     for userdata in data:
+        if "discord_id" not in userdata or "tele_id" not in userdata:
+            print("discord or telegram userid not filled!")
+            continue
         daily = DailyClaim(userdata["email"], userdata["server"], userdata["password"])
         daily.perform_claim()
         if not daily.claim_data:
@@ -206,12 +213,19 @@ def main():
         print(status.print_status())
         print("=" * 20)
 
-    if TELETOKEN:
-        tele_bot = TeleNotifier(TELETOKEN, statuses)
-        tele_bot.run()
-    if DCTOKEN:
-        dc_bot = DiscordNotifier(statuses)
-        asyncio.new_event_loop().run_until_complete(dc_bot.start(DCTOKEN))
+    try:
+        if TELETOKEN:
+            tele_bot = TeleNotifier(TELETOKEN, statuses)
+            tele_bot.run()
+        else:
+            print("No tele token were provided")
+        if DCTOKEN:
+            dc_bot = DiscordNotifier(statuses)
+            asyncio.new_event_loop().run_until_complete(dc_bot.start(DCTOKEN))
+        else:
+            print("No discord token were provided")
+    except (discord.LoginFailure, telegram.error.InvalidToken) as exc:
+        raise RuntimeError("Provided token was invalid!") from exc
 
 
 if __name__ == "__main__":

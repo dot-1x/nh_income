@@ -15,6 +15,7 @@ class DiscordNotifier(Bot):
         self.user_status = user_status
 
     async def on_ready(self):
+        print("Bot discord is ready!")
         for status in self.user_status:
             user = await self.get_or_fetch_user(status.discord)
             if not user:
@@ -32,7 +33,7 @@ class DiscordNotifier(Bot):
         await self.close()
         asyncio.get_running_loop().close()
 
-    async def on_error(self, *args: Any, **kwargs: Any) -> None:
+    async def on_error(self, *_: Any, **__: Any) -> None:
         traceback.print_exc()
         await self.close()
         asyncio.get_running_loop().close()

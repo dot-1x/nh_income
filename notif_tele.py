@@ -36,6 +36,7 @@ class TeleNotifier(ApplicationBuilder):
         traceback.print_exception(context.error)
 
     async def send_msgs(self, _: CallbackContext):
+        print("Bot telegram is ready")
         for status in self.user_status:
             try:
                 await self.notifier.send_message(status.tele, status.print_status())

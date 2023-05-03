@@ -25,7 +25,7 @@ Jika kalian ingin notifikasi dari discord, maka buatlah discord bot dahulu, sama
 3. buat file baru dengan cara `add file > new file`
 4. atur file path baru ke `.github/workflows/any` lalu commit
 5. masuk ke FOLDER unduhan file tadi lalu ekstrak lalu show hidden folder
-6. kembali ke repo github
+6. kembali ke repo github, lalu arahkan ke `ROOT` path (klik nama repo)
 7. lalu upload semua file-nya dengan `add file > upload file` **kecuali** folder **.github**
 8. untuk folder .github, pertama arahkan GITHUB ke `.github/workflows/` (pastikan hidden folder terlihat)
 9. lalu upload semua file yang ada pada folder `.github/workflows/` ke `.github/workflows/`
