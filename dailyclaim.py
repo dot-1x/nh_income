@@ -70,11 +70,16 @@ class UserStatus(NamedTuple):
     discord: int
     tele: int
 
+    def print_mail(self):
+        email, mail = self.email.split("@", 1)
+        head, tail = (email[:2], email[2:])
+        return head + "+" * len(tail) + mail
+
     def print_status(self):
         info = StringIO()
         info.writelines(
             (
-                f"Income report for: **{self.email}**\n",
+                f"Income report for: **{self.print_mail()}**\n",
                 f"**{DATE.date()}**\n",
                 f"Last Claim: {self.last_claim if self.last_claim > 0 else 'No last claim!'}\n",
                 # "\n".join(s.to_string() for s in self.statuses),
@@ -133,7 +138,10 @@ class DailyClaim:
                 self.reserve_cookie(client)
             resp = client.get(INCOME_URL)
         soup = BeautifulSoup(resp.text, "html.parser")
-
+        userid = soup.find("p", class_="userid")
+        if not userid:
+            print(f"Failed to login for {self.email[:2]}{'*'*len(self.email[2:])}")
+            return [], None
         claim_data: List[ClaimData] = []
         today_claim: Optional[ClaimData] = None
 
@@ -221,7 +229,7 @@ async def main():
         daily = DailyClaim(userdata["email"], userdata["server"], userdata["password"])
         daily.perform_claim()
         if not daily.claim_data:
-            print("NO DATA FOUND FOR,", userdata["email"])
+            print("NO DATA FOUND FOR:", userdata["email"][:2])
             continue
         success = list(
             d
@@ -243,7 +251,7 @@ async def main():
     await run_tele(statuses)
     if FAIL_STATE:
         key, exc = FAIL_STATE.popitem()
-        raise RuntimeError(f"An improper {key} token was invalid!") from exc
+        raise RuntimeError(f"An improper {key} token was passed!") from exc
 
 
 if __name__ == "__main__":

@@ -33,4 +33,4 @@ class TeleNotifier(ApplicationBuilder):
             try:
                 await self.notifier.send_message(status.tele, status.print_status())
             except BadRequest as exc:
-                print(f"raised exception for '{status.email}' with exc:", exc)
+                print(f"raised exception for '{status.print_mail()}' with exc:", exc)
