@@ -6,13 +6,21 @@ import os
 from io import StringIO
 from enum import Enum, auto
 from datetime import datetime, timedelta
-from typing import Dict, List, NamedTuple, Optional, TypedDict
+from typing import (
+    AsyncIterator,
+    Dict,
+    List,
+    NamedTuple,
+    Optional,
+    Tuple,
+    TypedDict,
+)
 from dataclasses import dataclass
-import discord
 
+import discord
 import httpx
-from bs4 import BeautifulSoup
 import telegram
+from bs4 import BeautifulSoup, NavigableString, Tag
 
 from notif_discord import DiscordNotifier
 from notif_tele import TeleNotifier
@@ -70,6 +78,7 @@ class UserStatus(NamedTuple):
     discord: int
     tele: int
 
+    @property
     def print_mail(self):
         email, mail = self.email.split("@", 1)
         head, tail = (email[:2], email[2:])
@@ -79,7 +88,7 @@ class UserStatus(NamedTuple):
         info = StringIO()
         info.writelines(
             (
-                f"Income report for: **{self.print_mail()}**\n",
+                f"Income report for: **{self.print_mail}**\n",
                 f"**{DATE.date()}**\n",
                 f"Last Claim: {self.last_claim if self.last_claim > 0 else 'No last claim!'}\n",
                 # "\n".join(s.to_string() for s in self.statuses),
@@ -111,6 +120,25 @@ class ClaimData:
             {MSGSMAP.get(self.status, 'Unclaimed!')}"
 
 
+class AsyncItemIterator(AsyncIterator[Tuple[int, Tag | NavigableString]]):
+    def __init__(self, soup: BeautifulSoup) -> None:
+        self.tag = soup.find("div", str(ClaimCheck.UNCLAIMED))
+        if not self.tag:
+            raise StopAsyncIteration
+        self.counter = 0
+
+    def __aiter__(self) -> "AsyncItemIterator":
+        return self
+
+    async def __anext__(self):
+        div = self.tag
+        self.tag = self.tag.find_next_sibling("div", str(ClaimCheck.UNCLAIMED))
+        if not self.tag:
+            raise StopAsyncIteration
+        self.counter += 1
+        return self.counter, div
+
+
 class DailyClaim:
     def __init__(self, email: str, server: int, passwd: Optional[str] = None) -> None:
         self.email = email
@@ -120,35 +148,32 @@ class DailyClaim:
         self.cookies: Optional[httpx.Cookies] = None
         self.claim_data: List[ClaimData] = []
 
-    def reserve_cookie(self, client: httpx.Client):
-        client.get(INCOME_URL)
+    async def reserve_cookie(self, client: httpx.AsyncClient):
+        await client.get(INCOME_URL)
         if self.passwd:
-            client.post(
+            await client.post(
                 self.baselogin,
                 data={"txtuserid": self.email, "txtpassword": self.passwd},
             )
         else:
-            client.get(self.baselogin)
-        client.get(INCOME_URL)
+            await client.get(self.baselogin)
         self.cookies = client.cookies
+        return await client.get(INCOME_URL)
 
-    def check_unclaimed(self):
-        with httpx.Client(timeout=TIMEOUT, cookies=self.cookies) as client:
+    async def check_unclaimed(self):
+        async with httpx.AsyncClient(timeout=TIMEOUT, cookies=self.cookies) as client:
             if not self.cookies:
-                self.reserve_cookie(client)
-            resp = client.get(INCOME_URL)
-        soup = BeautifulSoup(resp.text, "html.parser")
+                resp = await self.reserve_cookie(client)
+            else:
+                resp = await client.get(INCOME_URL)
+        soup = BeautifulSoup(await resp.aread(), "html.parser")
         userid = soup.find("p", class_="userid")
         if not userid:
-            print(f"Failed to login for {self.email[:2]}{'*'*len(self.email[2:])}")
+            print(f"Failed to login for {self.email}")
             return [], None
         claim_data: List[ClaimData] = []
         today_claim: Optional[ClaimData] = None
-
-        for idx, elem in enumerate(
-            soup.find_all("div", str(ClaimCheck.UNCLAIMED)), start=1
-        ):
-            # claim_data.append()
+        async for idx, elem in AsyncItemIterator(soup):
             claimed = str(ClaimCheck.CLAIMED) in elem["class"]
             data = ClaimData(
                 ClaimStatus.CLAIMED if claimed else ClaimStatus.FAILED,
@@ -159,17 +184,16 @@ class DailyClaim:
             claim_data.append(data)
             if str(ClaimCheck.CURRENT) in elem["class"]:
                 today_claim = data
-
         return (claim_data, today_claim)
 
-    def perform_claim(self):
-        claim_data, today = self.check_unclaimed()
-        self.claim_data = claim_data
+    async def perform_claim(self):
+        print("Performing claim for", self.email)
+        self.claim_data, today = await self.check_unclaimed()
         if today:
-            with httpx.Client(cookies=self.cookies) as client:
+            async with httpx.AsyncClient(cookies=self.cookies) as client:
                 if not self.cookies:
-                    self.reserve_cookie(client)
-                result = client.post(
+                    await self.reserve_cookie(client)
+                result = await client.post(
                     "https://kageherostudio.com/event/index_.php?act=daily",
                     data={
                         "itemId": today.item,
@@ -222,14 +246,16 @@ async def main():
 
     statuses: List[UserStatus] = []
 
+    async with asyncio.TaskGroup() as tasks:
+        for userdata in data:
+            daily = DailyClaim(
+                userdata["email"], userdata["server"], userdata["password"]
+            )
+            tasks.create_task(daily.perform_claim())
+    print("Done running claim!")
     for userdata in data:
-        if "discord_id" not in userdata or "tele_id" not in userdata:
-            print("discord or telegram userid not filled!")
-            continue
-        daily = DailyClaim(userdata["email"], userdata["server"], userdata["password"])
-        daily.perform_claim()
         if not daily.claim_data:
-            print("NO DATA FOUND FOR:", userdata["email"][:2])
+            print("NO DATA FOUND FOR:", userdata["email"])
             continue
         success = list(
             d
@@ -241,8 +267,8 @@ async def main():
                 userdata["email"],
                 daily.claim_data,
                 max(d.day for d in success) if success else -1,
-                userdata["discord_id"],
-                userdata["tele_id"],
+                userdata.get("discord_id", 0),
+                userdata.get("tele_id", 0),
             )
         )
         print(status.print_status())
