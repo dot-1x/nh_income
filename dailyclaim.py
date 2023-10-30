@@ -293,27 +293,29 @@ async def autoclaim():
         data: List[UserData] = json.load(file)
 
     statuses: List[UserStatus] = []
-
+    claim_datas: dict[str, NhIncome] = {}
     async with asyncio.TaskGroup() as tasks:
         for userdata in data:
             daily = NhIncome(
                 userdata["email"], userdata["server"], userdata["password"]
             )
             tasks.create_task(daily.perform_claim())
+            claim_datas.update({userdata["email"]: daily})
     print("Done running claim!")
     for userdata in data:
-        if not daily.claim_data:
+        done = claim_datas[userdata["email"]]
+        if not done.claim_data:
             print("NO DATA FOUND FOR:", userdata["email"])
             continue
         success = list(
             d
-            for d in daily.claim_data
+            for d in done.claim_data
             if d.status in [ClaimStatus.CLAIMED, ClaimStatus.SUCCESS]
         )
         statuses.append(
             status := UserStatus(
                 userdata["email"],
-                daily.claim_data,
+                done.claim_data,
                 max(d.day for d in success) if success else -1,
                 userdata.get("discord_id", 0),
                 userdata.get("tele_id", 0),
