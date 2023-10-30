@@ -33,5 +33,5 @@ jobs:
                   DISCORDTOKEN: ${{ secrets.DISCORDTOKEN }}
                   TELETOKEN: ${{ secrets.TELETOKEN }}
               run: |
-                  python dailyclaim.py
+                  python main.py --type auto
                   echo done running daily
