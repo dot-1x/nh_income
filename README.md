@@ -8,6 +8,7 @@
 
 **PENTING**
 Jika kalian ingin notifikasi dari discord, maka buatlah discord bot dahulu, sama halnya dengan bot telegram
+Jangan lupa untuk membuat repository menjadi **PRIVATE**
 
 ## 1. MEMBUAT SECRETS (PENTING)
 
