@@ -8,7 +8,7 @@
 
 **PENTING**  
 Jika kalian ingin notifikasi dari discord, maka buatlah discord bot dahulu, sama halnya dengan bot telegram  
-Jangan lupa untuk membuat repository menjadi **PRIVATE**  
+Jangan lupa untuk membuat repository menjadi **PRIVATE**
 
 ## 1. MEMBUAT SECRETS (PENTING)
 
@@ -34,7 +34,7 @@ Jangan lupa untuk membuat repository menjadi **PRIVATE**
 
 ## 3. SET UP ACCOUNT
 
-1. edit file `data.json` sesuai berikut
+1. buat file `data.json` sesuai berikut
 
    ```
    {

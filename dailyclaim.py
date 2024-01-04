@@ -114,6 +114,7 @@ class ClaimData:
     day: int
     item: int
     name: str
+    period: int
 
     def __str__(self) -> str:
         return f"Item: {self.item}/Day {self.day} ({self.name}): \
@@ -159,12 +160,12 @@ class NhIncome:
         self.cookies = client.cookies
         return await client.get(INCOME_URL)
 
-    def post_claim(self, client: httpx.AsyncClient, item_id: int):
+    def post_claim(self, client: httpx.AsyncClient, item_id: int, period: int):
         return client.post(
             "https://kageherostudio.com/event/index_.php?act=daily",
             data={
                 "itemId": item_id,
-                "periodId": PERIOD,
+                "periodId": period,
                 "selserver": self.server,
             },
         )
@@ -190,6 +191,7 @@ class NhIncome:
                 idx,
                 int(elem["data-id"]),
                 elem["data-name"],
+                int(elem["data-period"]),
             )
             claim_data.append(data)
             if str(ClaimCheck.CURRENT) in elem["class"]:
@@ -208,12 +210,16 @@ class NhIncome:
             async with httpx.AsyncClient(cookies=self.cookies) as client:
                 if not self.cookies:
                     await self.reserve_cookie(client)
-                result = await self.post_claim(client, today.item)
+                result = await self.post_claim(client, today.item, today.period)
                 resdata = result.json()
-
+            print(resdata)
             if resdata["message"] == "success":
                 today.status = ClaimStatus.SUCCESS
+                print("Successfully claimed income for: ", self.email)
                 return True
+            print("Failed to claim income for: ", self.email)
+            return False
+
         return False
 
     async def fast_claim(self):
@@ -231,13 +237,18 @@ class NhIncome:
                 )
             today_reward: Tag | None = mulitple[0]
             if today_reward:
-                await self.post_claim(client, today_reward.get("data-id"))
+                await self.post_claim(
+                    client,
+                    today_reward.get("data-id", 0),
+                    today_reward.get("data-period", 0),
+                )
             claimed = [
                 ClaimData(
                     status=ClaimStatus.CLAIMED,
                     day=-1,
                     item=claim.get("data-id", 0),
                     name=claim.get("data-name", "Undefined!"),
+                    period=claim.get("data-period", 0),
                 )
                 for claim in soup.select(f"div.{ClaimCheck.CLAIMED}")
             ]
@@ -252,9 +263,12 @@ class NhIncome:
             if not today_reward:
                 raise ValueError("Today's income already claimed")
             reward_id = today_reward.get("data-id")
+            reward_period = today_reward.get("data-period")
             async with asyncio.TaskGroup() as tgroup:
                 for _ in range(amount):
-                    tgroup.create_task(self.post_claim(client, reward_id or 1))
+                    tgroup.create_task(
+                        self.post_claim(client, reward_id or 1, reward_period or 1)
+                    )
 
     def __repr__(self) -> str:
         return f"DailyClaim(user: {self.email}, \
