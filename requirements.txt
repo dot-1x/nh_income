@@ -1,5 +1,6 @@
+# Runtime dependencies (see pyproject.toml for pinned metadata)
 httpx
-py-cord
-bs4
-python-telegram-bot[job-queue]
+beautifulsoup4
+discord.py
+python-telegram-bot
 python-dotenv
