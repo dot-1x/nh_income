@@ -27,7 +27,7 @@ async def _run_account(
         except MultipleUnclaimedError as exc:
             logger.error("%s: %s", account.email, exc)
             return Report(email=account.email, error=str(exc))
-        except Exception as exc:  # noqa: BLE001 - one bad account must not kill the run
+        except Exception as exc:  # one bad account must not kill the whole run
             logger.exception("Unhandled error while processing %s", account.email)
             return Report(email=account.email, error=str(exc))
     return result.to_report()

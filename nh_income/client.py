@@ -12,6 +12,7 @@ from bs4 import BeautifulSoup
 from . import parsing
 from .constants import (
     CLAIM_URL,
+    CLAIMED_CLASS,
     INCOME_URL,
     LOGIN_URL,
     XSS_LOGIN_URL,

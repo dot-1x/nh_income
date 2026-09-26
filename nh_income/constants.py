@@ -1,17 +1,8 @@
-"""Domain models for NH Income.
-
-These dataclasses are intentionally dependency-free so the rest of the
-package (HTTP client, notifiers, CLI) only depends on this small core.
-"""
+"""Constants for NH Income."""
 
 from __future__ import annotations
 
-import logging
-from dataclasses import dataclass, field
-from enum import StrEnum
 from zoneinfo import ZoneInfo
-
-logger = logging.getLogger(__name__)
 
 #: Site event time (the dashboard resets on GMT+7).
 WIB = ZoneInfo("Asia/Jakarta")
