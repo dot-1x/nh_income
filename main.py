@@ -1,22 +1,11 @@
-import asyncio
-import argparse
-from dailyclaim import autoclaim, skip_income
+#!/usr/bin/env python3
+"""Backwards-compatible entry point.
 
+Legacy invocations such as ``python main.py --type auto`` and CI workflows
+keep working; the implementation now lives in the ``nh_income`` package.
+"""
 
-parser = argparse.ArgumentParser("NH Income Tools")
-parser.add_argument("--type", choices=["auto", "skip"], required=True)
-parser.add_argument("--amount", required=False, type=int, default=1)
-
-
-def main():
-    namespaces = parser.parse_args()
-    if namespaces.type == "auto":
-        print("Running auto income")
-        asyncio.run(autoclaim())
-    elif namespaces.type == "skip":
-        print("Running skip income")
-        asyncio.run(skip_income(namespaces.amount))
-
+from nh_income.__main__ import main
 
 if __name__ == "__main__":
-    main()
+    raise SystemExit(main())
