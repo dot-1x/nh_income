@@ -1,8 +1,0 @@
-[MESSAGES CONTROL]
-disable=bare-except,
-        missing-function-docstring,
-        missing-class-docstring,
-        missing-module-docstring,
-        broad-exception-caught,
-        too-few-public-methods,
-        too-many-instance-attributes
